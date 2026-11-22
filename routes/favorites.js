@@ -1,7 +1,8 @@
 // Монтировать: app.use('/api/favorites', require('./routes/favorites'));
 const express = require('express');
 const { Favorite, Product, Shop } = require('../models');
-const { authRequired, requireRole } = require('../middleware/auth');
+const { authRequired } = require('../middleware/auth');
+const { requireRole } = require('../middleware/role');
 
 const router = express.Router();
 router.use(authRequired, requireRole('buyer'));

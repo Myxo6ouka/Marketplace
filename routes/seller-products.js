@@ -1,7 +1,8 @@
 // Монтировать: app.use('/api/seller/products', require('./routes/seller-products'));
 const express = require('express');
 const { Product, Category, Shop } = require('../models');
-const { authRequired, requireRole } = require('../middleware/auth');
+const { authRequired } = require('../middleware/auth');
+const { requireRole } = require('../middleware/role');
 
 const router = express.Router();
 router.use(authRequired, requireRole('seller'));
@@ -85,7 +86,7 @@ router.post('/', async (req, res, next) => {
   try {
     const shop = await getShop(req, res); if (!shop) return;
     const { errors, data } = await parseBody(req.body, { partial: false });
-    if (errors.length) return res.status(400).json({ errors });
+    if (errors.length) return res.status(400).json({ error: errors.join('; ') });
     const product = await Product.create({ ...data, shopId: shop.id });
     res.status(201).json(product);
   } catch (e) { next(e); }
@@ -106,7 +107,7 @@ router.put('/:id', async (req, res, next) => {
   try {
     const product = await loadOwned(req, res); if (!product) return;
     const { errors, data } = await parseBody(req.body, { partial: true });
-    if (errors.length) return res.status(400).json({ errors });
+    if (errors.length) return res.status(400).json({ error: errors.join('; ') });
     await product.update(data); // shopId не трогаем
     res.json(product);
   } catch (e) { next(e); }

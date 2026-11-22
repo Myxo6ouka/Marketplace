@@ -2,7 +2,7 @@ const express = require('express');
 const { sequelize, Cart, CartItem, Product, Shop, Order, SubOrder, OrderItem } = require('../models');
 const { authRequired } = require('../middleware/auth');
 const { requireRole } = require('../middleware/role');
-const { HttpError } = require('../middleware/errors');
+const { HttpError, asyncHandler, ok } = require('../middleware/errors');
 
 const router = express.Router();
 router.use(authRequired, requireRole('buyer'));
@@ -29,9 +29,10 @@ function serialize(order) {
 }
 
 // POST /api/orders  { address }  (оплата только при получении)
-router.post('/', async (req, res, next) => {
-  try {
-    const address = String(req.body.address || '').trim();
+router.post(
+  '/',
+  asyncHandler(async (req, res) => {
+    const address = typeof req.body.address === 'string' ? req.body.address.trim() : '';
     if (!address) throw new HttpError(400, 'Укажите адрес доставки');
 
     const orderId = await sequelize.transaction(async (t) => {
@@ -118,37 +119,33 @@ router.post('/', async (req, res, next) => {
     });
 
     const order = await Order.findByPk(orderId, { include: orderInclude });
-    res.status(201).json({ data: serialize(order) });
-  } catch (e) {
-    next(e);
-  }
-});
+    ok(res, serialize(order), 201);
+  })
+);
 
 // GET /api/orders: только свои заказы
-router.get('/', async (req, res, next) => {
-  try {
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
     const orders = await Order.findAll({
       where: { buyerId: req.user.id },
       include: orderInclude,
       order: [['id', 'DESC']],
     });
-    res.json({ data: orders.map(serialize) });
-  } catch (e) {
-    next(e);
-  }
-});
+    ok(res, orders.map(serialize));
+  })
+);
 
 // GET /api/orders/:id: чужой заказ даёт 404 (не раскрываем, что он существует)
-router.get('/:id', async (req, res, next) => {
-  try {
+router.get(
+  '/:id',
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) throw new HttpError(400, 'Некорректный id');
     const order = await Order.findOne({ where: { id, buyerId: req.user.id }, include: orderInclude });
     if (!order) throw new HttpError(404, 'Заказ не найден');
-    res.json({ data: serialize(order) });
-  } catch (e) {
-    next(e);
-  }
-});
+    ok(res, serialize(order));
+  })
+);
 
 module.exports = router;
