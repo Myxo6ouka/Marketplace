@@ -36,8 +36,7 @@ app.get('/api/health', async (req, res) => {
 
 if (models) {
   app.use('/api', require('./routes/auth')); // /register, /login, /me
-  // Подключаются по мере готовности (маршруты роли B подключает A при слиянии):
-  // app.use('/api/orders', require('./routes/orders'));
+  app.use('/api/orders', require('./routes/orders'));
   // app.use('/api/seller/orders', require('./routes/seller-orders'));
   // app.use('/api/admin', require('./routes/moderation'));
   // app.use('/api/products', require('./routes/products'));
