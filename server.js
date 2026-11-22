@@ -36,12 +36,25 @@ app.get('/api/health', async (req, res) => {
 
 if (models) {
   app.use('/api', require('./routes/auth')); // /register, /login, /me
+
+  // Покупатель
+  app.use('/api/products', require('./routes/reviews')); // /:id/reviews
+  app.use('/api/products', require('./routes/products'));
+  app.use('/api/categories', require('./routes/categories'));
+  app.use('/api/sellers', require('./routes/sellers')); // фильтр «Продавец» в каталоге
+  app.use('/api/cart', require('./routes/cart'));
   app.use('/api/orders', require('./routes/orders'));
-  // app.use('/api/seller/orders', require('./routes/seller-orders'));
-  // app.use('/api/admin', require('./routes/moderation'));
-  // app.use('/api/products', require('./routes/products'));
-  // app.use('/api/cart', require('./routes/cart'));
-  // app.use('/api/seller/products', require('./routes/seller-products'));
+  app.use('/api/favorites', require('./routes/favorites'));
+
+  // Продавец
+  app.use('/api/seller/products', require('./routes/seller-products'));
+  app.use('/api/seller/orders', require('./routes/seller-orders'));
+
+  // Администратор
+  // Категории (routes/admin-categories.js от роли B): путь монтирования смотри в комментарии
+  // «Монтировать:» в начале файла и раскомментируй, поставив ПЕРЕД moderation:
+  // app.use('/api/admin/categories', require('./routes/admin-categories'));
+  app.use('/api/admin', require('./routes/moderation'));
 }
 
 app.use(express.static(path.join(__dirname, 'public')));

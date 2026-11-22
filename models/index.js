@@ -21,6 +21,12 @@ const Order = require('./Order')(sequelize, DataTypes);
 const SubOrder = require('./SubOrder')(sequelize, DataTypes);
 const OrderItem = require('./OrderItem')(sequelize, DataTypes);
 const Favorite = require('./Favorite')(sequelize, DataTypes);
+const Review = require('./Review')(sequelize, DataTypes);
+
+Product.hasMany(Review, { foreignKey: 'productId', as: 'reviews', onDelete: 'CASCADE' });
+Review.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+User.hasMany(Review, { foreignKey: 'userId', as: 'reviews', onDelete: 'CASCADE' });
+Review.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 // users <-> shops (1:1, shops.owner_id UNIQUE, CASCADE)
 User.hasOne(Shop, { foreignKey: 'ownerId', as: 'shop', onDelete: 'CASCADE' });
@@ -79,4 +85,5 @@ module.exports = {
   SubOrder,
   OrderItem,
   Favorite,
+  Review,
 };
